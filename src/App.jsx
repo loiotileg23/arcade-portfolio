@@ -18,6 +18,10 @@ export default function App() {
   const activeScene   = usePortfolioStore((s) => s.activeScene)
   const setSkillsOpen = usePortfolioStore((s) => s.setSkillsOpen)
 
+  // Unlock synthesized audio on the first tap/click/key (and again after iOS
+  // suspends it) — see SoundManager.installUnlock
+  useEffect(() => SoundManager.installUnlock(), [])
+
   useEffect(() => {
     // Guard: only mount once (avoids double-mount issues)
     if (gameRef.current) return
@@ -35,10 +39,7 @@ export default function App() {
 
   return (
     // h-dvh tracks the visible viewport on iOS Safari (100vh sits under the toolbar)
-    <div
-      className="relative w-full h-dvh overflow-hidden bg-[#1a1a2e]"
-      onPointerDown={SoundManager.unlock}
-    >
+    <div className="relative w-full h-dvh overflow-hidden bg-[#1a1a2e]">
       {/* touch-none: no pinch/double-tap zoom or panning over the game canvas */}
       <div ref={containerRef} className="absolute inset-0 touch-none" />
       {/* pointer-events-none on the container so the Phaser canvas receives input

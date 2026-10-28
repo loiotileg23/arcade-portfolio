@@ -4,23 +4,31 @@
  * One shared AudioContext per page load.
  */
 
-let _ctx = null
+// webkitAudioContext: Safari before iOS 14.5
+const AudioCtx = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext)
+
+let _ctx    = null
+let _primed = false
 
 const _getCtx = () => {
-  if (!_ctx) _ctx = new AudioContext()
+  if (!_ctx && AudioCtx) _ctx = new AudioCtx()
   return _ctx
 }
 
-// Ensure context is running (required after user gesture on some browsers).
-// fn receives the live AudioContext once running.
+// Plays only while the context is running. Browsers keep it suspended until a
+// user activation (see unlock), and iOS can re-suspend it ('interrupted') after
+// backgrounding. Sounds requested meanwhile are dropped rather than queued —
+// queuing would fire every pending footstep at once the moment audio unlocks.
+// fn receives the live AudioContext.
 const _play = (fn) => {
   const ctx = _getCtx()
-  if (ctx.state === 'suspended') {
-    ctx.resume().then(() => fn(ctx)).catch(() => {})
-  } else {
-    fn(ctx)
-  }
+  if (ctx?.state === 'running') fn(ctx)
 }
+
+// Events that count as a user activation. For touch that's when the finger
+// lifts (touchend / pointerup) — pointerdown only qualifies for a mouse, which
+// is why unlocking on press works on desktop but stays silent on iOS.
+const UNLOCK_EVENTS = ['touchend', 'pointerup', 'click', 'keydown']
 
 // Convenience: create a gain node connected to destination with a volume ramp-to-zero.
 const _makeGain = (ctx, vol, startTime, duration) => {
@@ -34,12 +42,34 @@ const _makeGain = (ctx, vol, startTime, duration) => {
 export const SoundManager = {
 
   /**
-   * Resume the AudioContext from inside a user gesture (tap/click).
-   * iOS Safari keeps the context suspended until this happens.
+   * Resume the AudioContext from inside a user activation (tap/click/key).
+   * iOS Safari keeps the context suspended until this happens. The first call
+   * also plays a one-sample silent buffer, which older iOS needs to fully unlock.
    */
   unlock() {
     const ctx = _getCtx()
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+    if (!ctx) return
+    if (ctx.state !== 'running') ctx.resume().catch(() => {})
+    if (!_primed) {
+      const src = ctx.createBufferSource()
+      src.buffer = ctx.createBuffer(1, 1, 22050)
+      src.connect(ctx.destination)
+      src.start(0)
+      _primed = true
+    }
+  },
+
+  /**
+   * Listen for user activations page-wide and unlock audio on each one.
+   * Listeners stay attached so audio re-unlocks if iOS suspends it again
+   * (e.g. after switching apps). Capture phase, so the game canvas and React
+   * handlers calling preventDefault can't swallow the event first.
+   * Returns a cleanup function.
+   */
+  installUnlock() {
+    const onActivate = () => SoundManager.unlock()
+    UNLOCK_EVENTS.forEach((type) => window.addEventListener(type, onActivate, { capture: true, passive: true }))
+    return () => UNLOCK_EVENTS.forEach((type) => window.removeEventListener(type, onActivate, { capture: true }))
   },
 
   /**

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import usePortfolioStore from '../store/usePortfolioStore'
 import { touchState, releaseAllTouch, isTouchDevice } from '../game/input/touchControls'
-import { SoundManager } from '../game/audio/SoundManager'
 
 // On-screen D-pad for touch devices. Each button mirrors a keyboard key:
 //   ◀ ▶ — move (← → / A D)     ▲ — jump (↑ / W)     ▼ — enter (↓ / S)
@@ -11,8 +10,6 @@ function PadButton({ dir, label, aria }) {
   const press = (e) => {
     e.preventDefault()
     e.currentTarget.setPointerCapture?.(e.pointerId)
-    // iOS only allows audio to start inside a user gesture — unlock on first press
-    SoundManager.unlock()
     touchState[dir] = true
   }
   const release = (e) => {

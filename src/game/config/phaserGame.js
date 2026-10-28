@@ -16,6 +16,11 @@ const phaserConfig = {
   scale: {
     mode: Phaser.Scale.RESIZE,
   },
+  // All sound is synthesized by SoundManager — skip Phaser's own AudioContext so
+  // iOS only has one context to unlock
+  audio: {
+    noAudio: true,
+  },
   // OverworldScene is first — it starts automatically.
   // ProjectScene and IdentityScene are registered so scene.launch() works from any scene.
   scene: [OverworldScene, ProjectScene, IdentityScene],
