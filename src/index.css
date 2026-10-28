@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/*
+  Game reset — this project is a full-viewport canvas experience.
+  No document-layout defaults are needed.
+*/
+
+/* Inside @layer base: unlayered rules beat Tailwind v4's layered utilities, so an
+   unlayered padding: 0 here would silently cancel every p-* / px-* class. */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #1a1a2e;
+  /* Mobile Safari: no rubber-band scroll, text selection or long-press callout
+     while playing. touch-action: none lives on the game container (App.jsx), not
+     here — touch-action intersects down the tree, so setting it on body would
+     also block finger-scrolling inside overlays like the Skill Inventory. */
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* React root must fill the viewport — no width cap, no centering margin */
+#root {
+  width: 100%;
+  height: 100%;
+}
