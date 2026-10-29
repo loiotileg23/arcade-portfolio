@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { isTouchDevice } from '../input/touchControls'
+import { trackEvent, EVENTS } from '../../lib/analytics'
 
 // Shared behaviour for the two reading scenes (ProjectScene, IdentityScene).
 
@@ -22,6 +23,7 @@ export function enableLink(scene, target, url, { onOver, onOut } = {}) {
   if (onOut)  target.on('pointerout',  onOut)
   target.on('pointerup', () => {
     if ((scene._dragDistance ?? 0) < 10 && !scene._tapStoppedGlide) {
+      trackEvent(EVENTS.liveSite, { site: displayUrl(url) })
       window.open(url, '_blank', 'noopener,noreferrer')
     }
   })

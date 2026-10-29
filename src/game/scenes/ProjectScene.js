@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import usePortfolioStore from '../../store/usePortfolioStore'
 import PROJECTS from '../../data/projects'
 import { isTouchDevice } from '../input/touchControls'
+import { viewPage, trackEvent, EVENTS } from '../../lib/analytics'
 import { readingColumnWidth, returnHint, enableReadingScroll, enableReturnTap } from './readingLayout'
 import { ContentBlocks, META_FIELDS, THEMES } from './contentBlocks'
 
@@ -39,6 +40,10 @@ export default class ProjectScene extends Phaser.Scene {
       this.scene.stop()
       return
     }
+
+    // create() runs once per tunnel entry — one virtual page view each
+    viewPage(`/tunnel/${project.slug}`)
+    this._from = project.slug
 
     const W = this.scale.width
     const H = this.scale.height
@@ -302,6 +307,7 @@ export default class ProjectScene extends Phaser.Scene {
     if (this._leaving) return
     this._leaving = true
     this.input.keyboard.enabled = false
+    trackEvent(EVENTS.returnHome, { from: this._from })
 
     this.cameras.main.fadeOut(400, 0, 0, 0)
     this.cameras.main.once('camerafadeoutcomplete', () => {

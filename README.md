@@ -18,11 +18,19 @@ npm run preview   # serve the production build locally
 
 | What                         | Where                                  |
 | ---------------------------- | -------------------------------------- |
-| Projects (pipes + case pages) | `src/data/projects.js`                 |
-| About the studio (castle)     | `src/game/scenes/IdentityScene.js`     |
-| Overworld signs, CTA, castle  | `src/game/scenes/OverworldScene.js`    |
-| Contact email                 | `src/App.jsx`                          |
-| Page title / share preview    | `index.html`                           |
+| Projects + castle content     | `src/data/projects.js`                 |
+| Skill Inventory               | `src/data/skills.js`                   |
+| Overworld signs, billboard    | `src/game/scenes/OverworldScene.js`    |
+| Contact email, LinkedIn, subjects | `src/data/contact.js`              |
+| Page title / share preview    | `index.html`, `public/og-image.png`    |
+| Privacy policy                | `public/privacy.html`                  |
+| Analytics event names         | `src/lib/analytics.js`                 |
+
+## Analytics
+
+Vercel Web Analytics (cookieless, no env vars). Enable it once in Vercel → project → **Analytics**.
+Each scene is reported as a virtual page: `/`, `/tunnel/<slug>`, `/castle`, `/contact`.
+Custom events (contact choices, live-site clicks, returns) appear on Vercel Pro.
 
 ## Deploying to Vercel with thevisionaryproject.com
 

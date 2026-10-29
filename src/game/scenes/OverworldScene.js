@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
-import usePortfolioStore from '../../store/usePortfolioStore'
+import usePortfolioStore, { isModalOpen } from '../../store/usePortfolioStore'
+import { viewPage } from '../../lib/analytics'
 import PROJECTS, { CASTLE } from '../../data/projects'
 import { SoundManager } from '../audio/SoundManager'
 import { touchState, isTouchDevice } from '../input/touchControls'
@@ -62,6 +63,8 @@ export default class OverworldScene extends Phaser.Scene {
     this.events.on('wake', () => {
       this.input.keyboard.enabled = true
       usePortfolioStore.getState().setActiveScene('overworld')
+      // The first overworld view is the page load itself; each return counts once here
+      viewPage('/')
       // Reset portal flash so it doesn't linger as a purple overlay on return
       if (this._portalFlash) this._portalFlash.setAlpha(0)
       // Ensure any door hum from before entry is silenced; reset proximity state
@@ -226,31 +229,49 @@ export default class OverworldScene extends Phaser.Scene {
     // Phones: centre over the spawn point, where the camera starts — at x=210 the
     // left half would sit off-screen on a ~390px viewport
     const bx = this.scale.width < 600 ? 350 : 210
-    const by = Math.round(H * 0.20)
     const bw = 318
-    const bh = 98
+    // Top edge sits where the original 98px board's did; the board grows downward
+    // to fit the text (its height is set once the text has been measured, below)
+    const top = Math.round(H * 0.20) - 49
 
     // Border then fill (layered rectangles — no Graphics API needed)
-    this.add.rectangle(bx, by, bw + 2, bh + 2, 0x1a3d28)  // 1px green border
-    this.add.rectangle(bx, by, bw,     bh,     0x07101e)  // dark fill
+    const border = this.add.rectangle(bx, top, bw + 2, 2, 0x1a3d28).setOrigin(0.5, 0)  // 1px green border
+    const fill   = this.add.rectangle(bx, top + 1, bw, 1, 0x07101e).setOrigin(0.5, 0)  // dark fill
 
     // Top accent bar
-    this.add.rectangle(bx, by - Math.floor(bh / 2), bw, 2, 0x22c55e, 0.7)
+    this.add.rectangle(bx, top, bw, 2, 0x22c55e, 0.7)
 
     // Title
-    this.add.text(bx, by - 20, 'INTERACTIVE PORTFOLIO', {
+    this.add.text(bx, top + 29, 'INTERACTIVE PORTFOLIO', {
       fontSize: '19px', color: '#f1f5f9', fontFamily: 'monospace', fontStyle: 'bold',
     }).setOrigin(0.5)
 
     // Subtitle
-    this.add.text(bx, by + 8, 'AA Holdings Studio', {
+    this.add.text(bx, top + 55, 'AA Holdings Studio', {
       fontSize: '12px', color: '#4ade80', fontFamily: 'monospace',
     }).setOrigin(0.5)
 
-    // In-world call-to-action
-    this.add.text(bx, by + 28, 'walk right  ·  enter a pipe  ·  explore the work', {
+    // Positioning — who's behind the work, readable before entering a tunnel
+    this.add.text(bx, top + 78, 'INDUSTRIAL ENGINEER · ENTERPRISE SALES\nTECHNOLOGY BUILDER', {
+      fontSize: '10px', color: '#fbbf24', fontFamily: 'monospace', fontStyle: 'bold',
+      align: 'center', lineSpacing: 2,
+    }).setOrigin(0.5, 0)
+
+    const statement = this.add.text(bx, top + 108,
+      'Bridging engineering, business development, and artificial intelligence through ' +
+      'technical problem-solving, commercial experience, and independent software development.', {
+      fontSize: '10px', color: '#cbd5e1', fontFamily: 'monospace',
+      align: 'center', lineSpacing: 2, wordWrap: { width: bw - 28 },
+    }).setOrigin(0.5, 0)
+
+    // In-world call-to-action, below however many lines the statement wrapped to
+    const hint = this.add.text(bx, statement.y + statement.height + 10, 'walk right  ·  enter a pipe  ·  explore the work', {
       fontSize: '10px', color: '#94a3b8', fontFamily: 'monospace',
-    }).setOrigin(0.5)
+    }).setOrigin(0.5, 0)
+
+    const bh = hint.y + hint.height + 12 - top
+    border.setSize(bw + 2, bh + 2).setPosition(bx, top - 1)
+    fill.setSize(bw, bh).setPosition(bx, top)
   }
 
   // ── Signpost ───────────────────────────────────────────────────────────────
@@ -504,8 +525,8 @@ export default class OverworldScene extends Phaser.Scene {
   // Merges keyboard (arrows + WASD) and the on-screen touch pad into one
   // { left, right, up, down } snapshot, read once per frame.
   _readControls() {
-    // Skill Inventory open — the player stands still until it closes
-    if (usePortfolioStore.getState().skillsOpen) {
+    // Skills or contact panel open — the player stands still until it closes
+    if (isModalOpen()) {
       return { left: false, right: false, up: false, down: false }
     }
     const c = this.cursors

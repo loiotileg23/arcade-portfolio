@@ -9,15 +9,15 @@ const SKILLS = [
   },
   {
     category: 'Commercial',
-    skills: ['Enterprise B2B Sales', 'Technical Sales', 'Sales Leadership', 'Negotiation'],
+    skills: ['Enterprise B2B Sales', 'Technical Sales', 'Sales Leadership', 'Negotiation', 'Account Management', 'Business Development'],
   },
   {
     category: 'Software',
-    skills: ['Flutter', 'Dart', 'Supabase', 'PostgreSQL', 'REST APIs'],
+    skills: ['Flutter', 'Dart', 'Supabase', 'PostgreSQL', 'REST APIs', 'AI Automation'],
   },
   {
     category: 'Platforms & Tools',
-    skills: ['Stripe', 'Shopify', 'Lovable', 'Cursor', 'Claude Code', 'GitHub', 'Firebase'],
+    skills: ['Stripe', 'Shopify', 'Lovable', 'Cursor', 'Claude Code', 'GitHub', 'Firebase', 'Salesforce', 'Microsoft Dynamics'],
   },
 ]
 

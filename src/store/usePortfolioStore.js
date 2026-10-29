@@ -13,10 +13,17 @@ const usePortfolioStore = create((set) => ({
   // Skill Inventory panel — while open, the overworld ignores movement input.
   skillsOpen: false,
 
+  // Contact panel (GET IN TOUCH) — opens from any scene; game input pauses while open.
+  contactOpen: false,
+
   setActiveProject: (slug, title) => set({ activeProject: { slug, title } }),
   clearActiveProject: () => set({ activeProject: null }),
   setActiveScene: (activeScene) => set({ activeScene }),
   setSkillsOpen: (skillsOpen) => set({ skillsOpen }),
+  setContactOpen: (contactOpen) => set({ contactOpen }),
 }))
+
+// True while any DOM modal is over the game — scenes ignore input then.
+export const isModalOpen = (s = usePortfolioStore.getState()) => s.skillsOpen || s.contactOpen
 
 export default usePortfolioStore

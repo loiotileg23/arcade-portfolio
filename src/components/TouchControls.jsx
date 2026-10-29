@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import usePortfolioStore from '../store/usePortfolioStore'
+import usePortfolioStore, { isModalOpen } from '../store/usePortfolioStore'
 import { touchState, releaseAllTouch, isTouchDevice } from '../game/input/touchControls'
 
 // On-screen D-pad for touch devices. Each button mirrors a keyboard key:
@@ -36,8 +36,8 @@ function PadButton({ dir, label, aria }) {
 export default function TouchControls() {
   const [touch] = useState(isTouchDevice)
   const activeScene = usePortfolioStore((s) => s.activeScene)
-  const skillsOpen  = usePortfolioStore((s) => s.skillsOpen)
-  const visible = touch && activeScene === 'overworld' && !skillsOpen
+  const modalOpen   = usePortfolioStore(isModalOpen)
+  const visible = touch && activeScene === 'overworld' && !modalOpen
 
   // Hidden buttons can't fire pointerup — clear any held direction when they disappear
   useEffect(() => {

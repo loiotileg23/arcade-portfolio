@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import usePortfolioStore from '../../store/usePortfolioStore'
 import { isTouchDevice } from '../input/touchControls'
+import { viewPage, trackEvent, EVENTS } from '../../lib/analytics'
 import { CASTLE } from '../../data/projects'
 import { readingColumnWidth, returnHint, enableReadingScroll, enableReturnTap } from './readingLayout'
 import { ContentBlocks, THEMES } from './contentBlocks'
@@ -27,6 +28,8 @@ export default class IdentityScene extends Phaser.Scene {
     this._leaving = false
     this._theme = THEMES.castle
     usePortfolioStore.getState().setActiveScene('identity')
+    // create() runs once per castle entry — one virtual page view each
+    viewPage('/castle')
 
     const W    = this.scale.width
     const H    = this.scale.height
@@ -200,6 +203,7 @@ export default class IdentityScene extends Phaser.Scene {
     if (this._leaving) return
     this._leaving = true
     this.input.keyboard.enabled = false
+    trackEvent(EVENTS.returnHome, { from: 'castle' })
     this.cameras.main.fadeOut(400, 0, 0, 0)
     this.cameras.main.once('camerafadeoutcomplete', () => {
       this.scene.wake('OverworldScene')
